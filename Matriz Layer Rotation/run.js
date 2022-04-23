@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 /*
  * Complete the 'matrixRotation' function below.
  *
@@ -62,14 +64,18 @@ function filterMap(map, xmin, xmax, ymin, ymax) {
     
     // y from mins to maxs
     for (let j = ymin; j <= ymax; j++) {
-        filteredMap[`${xmin}-${j}`] = map[`${xmin}-${j}`];
-        filteredMap[`${xmax}-${j}`] = map[`${xmax}-${j}`];
+        let keyMin = `${xmin}-${j}`;
+        let keyMax = `${xmax}-${j}`;
+        filteredMap[keyMin] = map[keyMin];
+        filteredMap[keyMax] = map[keyMax];
     }
 
     // x from mins to maxs
     for (let i = xmin; i <= xmax; i++) {
-        filteredMap[`${i}-${ymin}`] = map[`${i}-${ymin}`];
-        filteredMap[`${i}-${ymax}`] = map[`${i}-${ymax}`];
+        let keyMin = `${i}-${ymin}`;
+        let keyMax = `${i}-${ymax}`;
+        filteredMap[keyMin] = map[keyMin];
+        filteredMap[keyMax] = map[keyMax];
     }
 
     return filteredMap;
@@ -78,7 +84,7 @@ function filterMap(map, xmin, xmax, ymin, ymax) {
 // traverse object (keys=x-y)
 // from left to right, right to bottom, bottom to left, left to top
 // store keys and values in array
-function traverseMap(map, xmin, xmax, ymin, ymax, rotationTimes) {
+function traverseMap(map, xmin, xmax, ymin, ymax, r) {
     let keys = [];
     let values = [];
 
@@ -118,12 +124,10 @@ function traverseMap(map, xmin, xmax, ymin, ymax, rotationTimes) {
         y--;
     }
 
-    // do ratation times
-    // send last element to first
-    // delete last element
-    for (let i = 0; i < rotationTimes; i++) {
-        values.unshift(values.pop());
-    }
+    // module of r and length of values
+    let mod = r % values.length;
+    // shift last r elements of values to the front
+    values = values.slice(values.length - mod).concat(values.slice(0, values.length - mod));
 
     // join keys and values in object
     let obj = {};
@@ -135,19 +139,73 @@ function traverseMap(map, xmin, xmax, ymin, ymax, rotationTimes) {
     return obj;
 }
 
+function inputLogic(inputFileName) {
+    const input = fs.readFileSync(inputFileName, 'utf8');
 
-// let arr2d = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-let arr2d = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]
-console.log(arr2d)
-let r = 1;
-let rotates = matrixRotation(arr2d, r)
+    let lines = input.split('\n');
 
-// let map = map2dArray(arr2d);
-// let filteredMap = filterMap(map, 0, 3, 0, 3);
-// let obj = traverseMap(filteredMap, 0, 3, 0, 3, r);
-// console.log(filteredMap)
-// console.log(obj)
+    const firstMultipleInput = lines[0].replace(/\s+$/g, '').split(' ');
 
-for (let i = 0; i < rotates.length; i++) {
-    console.log(rotates[i].join(' '))
+    const m = parseInt(firstMultipleInput[0], 10);
+
+    const n = parseInt(firstMultipleInput[1], 10);
+
+    const r = parseInt(firstMultipleInput[2], 10);
+
+    let matrix = []
+
+    for (let i = 1; i <= m; i++) {
+        let subArray = lines[i].replace(/\s+$/g, '').split(' ').map(matrixTemp => parseInt(matrixTemp, 10))
+        matrix.push(subArray)
+    }
+
+    return [matrix, r];
 }
+
+function outputLogic(outputFileName) {
+    const output = fs.readFileSync(outputFileName, 'utf8');
+
+    const lines = output.split('\n');
+
+    let matrix = []
+
+    for (let i = 0; i < lines.length; i++) {
+        let subArray = lines[i].replace(/\s+$/g, '').split(' ').map(matrixTemp => parseInt(matrixTemp, 10))
+        matrix.push(subArray)
+    }
+
+    return matrix;
+}
+
+
+function run() {
+    let ex = '08'
+    let input = `Matriz\ Layer\ Rotation/input${ex}.txt`
+    let output = `Matriz\ Layer\ Rotation/output${ex}.txt`
+
+    let [matrix, r] = inputLogic(input);
+    // console.log('input', matrix)
+
+    let result = matrixRotation(matrix, r);
+    // console.log('result', result)
+
+    let outputMatrix = outputLogic(output);
+    // console.log('output', outputMatrix)
+
+    let testOK = true;
+    for (let i = 0; i < result.length; i++) {
+        for (let j = 0; j < result[i].length; j++) {
+            if (result[i][j] != outputMatrix[i][j]) {
+                testOK = false;
+            }
+        }
+    }
+
+    // for (let i = 0; i < result.length; i++) {
+    //     console.log(result[i].join(' '))
+    // }
+
+    console.log('testOK', testOK)
+}
+
+run();
